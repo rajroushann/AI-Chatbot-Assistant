@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional AI Chatbot</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-active: #1e40af;
+            --secondary-color: #f3f4f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --background: #ffffff;
+            --surface: #f9fafb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .chatbot-container {
+            width: 100%;
+            max-width: 600px;
+            height: 700px;
+            background: var(--background);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chatbot-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+        }
+
+        .chatbot-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .chatbot-header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            display: flex;
+            gap: 8px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.user .message-content {
+            background: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-8px);
+            }
+        }
+
+        .input-section {
+            padding: 16px;
+            background: var(--background);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            max-height: 100px;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .send-button {
+            padding: 12px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .send-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .send-button:active {
+            background: var(--primary-active);
+            transform: translateY(0);
+        }
+
+        .send-button:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .clear-button {
+            padding: 12px 16px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .clear-button:hover {
+            background: var(--surface);
+            border-color: var(--text-secondary);
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .welcome-message h2 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .quick-reply-btn {
+            padding: 8px 12px;
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .quick-reply-btn:hover {
+            background: var(--border-color);
+            border-color: var(--primary-color);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            background: #fee2e2;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .success-message {
+            color: var(--success-color);
+            background: #ecfdf5;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .chatbot-container {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <!-- Header -->
+        <div class="chatbot-header">
+            <h1>AI Assistant</h1>
+            <p>Powered by Advanced NLP</p>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-container" id="messagesContainer">
+            <div class="message bot">
+                <div class="message-content">
+                    <div class="welcome-message">
+                        <h2>Welcome! 👋</h2>
+                        <p>I'm your AI assistant. I can help you with questions, provide information, and have conversations.</p>
+                        <div class="quick-replies">
+                            <button class="quick-reply-btn" onclick="setMessage('Hello')">Say Hello</button>
+                            <button class="quick-reply-btn" onclick="setMessage('Who are you?')">Who are you?</button>
+                            <button class="quick-reply-btn" onclick="setMessage('Tell me something interesting')">Tell me something</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <div class="input-wrapper">
+                <textarea
+                    id="userInput"
+                    class="message-input"
+                    placeholder="Type your message here..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">Send</button>
+            </div>
+            <button class="clear-button" onclick="clearChat()">Clear</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Chatbot Application
+         * A professional AI chatbot demonstrating best practices in web development
+         * Features: Message handling, state management, error handling, responsive design
+         */
+
+        // ============================================
+        // CONFIGURATION & STATE MANAGEMENT
+        // ============================================
+
+        const CONFIG = {
+            API_TIMEOUT: 5000,
+            MAX_MESSAGE_LENGTH: 500,
+            TYPING_DELAY: 800,
+        };
+
+        let chatState = {
+            isLoading: false,
+            messages: [],
+            conversationContext: [],
+        };
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        /**
+         * Escape HTML special characters to prevent XSS attacks
+         * @param {string} text - Raw user input
+         * @returns {string} Escaped safe HTML text
+         */
+        function escapeHTML(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Get current timestamp in readable format
+         * @returns {string} Formatted time string
+         */
+        function getTimestamp() {
+            return new Date().toLocaleTimeString();
+        }
+
+        /**
+         * Auto-resize textarea based on content
+         * @param {HTMLElement} textarea - The textarea element
+         */
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+        }
+
+        // ============================================
+        // MESSAGE HANDLING
+        // ============================================
+
+        /**
+         * Add message to chat display
+         * @param {string} text - Message content
+         * @param {string} sender - 'user' or 'bot'
+         */
+        function addMessage(text, sender) {
+            const container = document.getElementById('messagesContainer');
+            const message = document.createElement('div');
+            message.className = `message ${sender}`;
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.innerHTML = escapeHTML(text);
+
+            message.appendChild(content);
+            container.appendChild(message);
+
+            // Auto-scroll to bottom
+            container.scrollTop = container.scrollHeight;
+
+            // Store in state
+            chatState.messages.push({ text, sender, timestamp: getTimestamp() });
+        }
+
+        /**
+         * Show typing indicator
+         * @returns {HTMLElement} The typing indicator element
+         */
+        function showTypingIndicator() {
+            const container = document.getElementById('messagesContainer');
+            const message = document.createElement('div');
+            message.className = 'message bot';
+            message.id = 'typingIndicator';
+
+            const typing = document.createElement('div');
+            typing.className = 'typing-indicator';
+            typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+            message.appendChild(typing);
+            container.appendChild(message);
+            container.scrollTop = container.scrollHeight;
+
+            return message;
+        }
+
+        /**
+         * Remove typing indicator
+         */
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // ============================================
+        // AI RESPONSE GENERATION
+        // ============================================
+
+        /**
+         * Generate AI response using pattern matching and knowledge base
+         * This is a beginner-friendly approach without requiring API keys
+         * @param {string} userMessage - User input
+         * @returns {Promise<string>} Bot response
+         */
+        async function generateBotResponse(userMessage) {
+            return new Promise((resolve) => {
+                // Simulate API delay for realistic feel
+                setTimeout(() => {
+                    const response = getContextualResponse(userMessage);
+                    resolve(response);
+                }, CONFIG.TYPING_DELAY);
+            });
+        }
+
+        /**
+         * Knowledge base and pattern matching system
+         * Easy to extend with more patterns and responses
+         * @param {string} input - Normalized user input
+         * @returns {string} Appropriate response
+         */
+        function getContextualResponse(input) {
+            const normalized = input.toLowerCase().trim();
+
+            // Greeting patterns
+            if (matchesPattern(normalized, ['hello', 'hi', 'hey', 'greetings'])) {
+                return 'Hello! It\'s great to meet you. How can I assist you today?';
+            }
+
+            // Identity patterns
+            if (matchesPattern(normalized, ['who are you', 'what are you', 'about yourself', 'tell me about you'])) {
+                return 'I\'m an AI Assistant built with modern web technologies. I\'m here to help answer your questions and have meaningful conversations. Feel free to ask me anything!';
+            }
+
+            // Capability patterns
+            if (matchesPattern(normalized, ['what can you do', 'your capabilities', 'help', 'what do you do'])) {
+                return 'I can:\n• Answer general knowledge questions\n• Have conversations\n• Provide information\n• Help you think through problems\n• Generate creative content\n\nTry asking me something!';
+            }
+
+            // Interesting patterns
+            if (matchesPattern(normalized, ['tell me something', 'interesting fact', 'fun fact', 'something cool'])) {
+                const facts = [
+                    'Did you know? Honey never spoils. Archaeologists have found 3,000-year-old honey in Egyptian tombs that was still edible!',
+                    'Fun fact: The Eiffel Tower can be 15cm taller during summer due to thermal expansion of the iron!',
+                    'Interesting: Octopuses have three hearts and blue blood!',
+                    'Cool fact: A day on Venus is longer than its year!',
+                ];
+                return facts[Math.floor(Math.random() * facts.length)];
+            }
+
+            // Time/date patterns
+            if (matchesPattern(normalized, ['time', 'date', 'what time', 'what date'])) {
+                const now = new Date();
+                return `Current date and time: ${now.toLocaleString()}`;
+            }
+
+            // Gratitude patterns
+            if (matchesPattern(normalized, ['thank', 'thanks', 'appreciate'])) {
+                return 'You\'re welcome! Happy to help. Is there anything else you\'d like to know?';
+            }
+
+            // Sentiment - positive
+            if (matchesPattern(normalized, ['good', 'great', 'awesome', 'amazing', 'love this'])) {
+                return 'That\'s wonderful! I\'m glad you\'re having a great experience. What else can I help you with?';
+            }
+
+            // Sentiment - negative
+            if (matchesPattern(normalized, ['bad', 'terrible', 'hate', 'problem', 'issue', 'broken'])) {
+                return 'I\'m sorry to hear that. Please tell me more about the issue so I can try to help you better.';
+            }
+
+            // Default response for unknown queries
+            return 'That\'s an interesting question! While I don\'t have a specific answer for that, I\'d love to discuss it further. Can you tell me more about what you\'re asking?';
+        }
+
+        /**
+         * Check if input matches any pattern keywords
+         * @param {string} input - User input
+         * @param {string[]} patterns - Keywords to match
+         * @returns {boolean} True if matches
+         */
+        function matchesPattern(input, patterns) {
+            return patterns.some(pattern => input.includes(pattern));
+        }
+
+        // ============================================
+        // USER INTERACTION HANDLERS
+        // ============================================
+
+        /**
+         * Main send message handler
+         */
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const userMessage = input.value.trim();
+
+            // Validation
+            if (!userMessage) {
+                return;
+            }
+
+            if (userMessage.length > CONFIG.MAX_MESSAGE_LENGTH) {
+                alert(`Message must be less than ${CONFIG.MAX_MESSAGE_LENGTH} characters`);
+                return;
+            }
+
+            if (chatState.isLoading) {
+                return;
+            }
+
+            try {
+                // Disable input while processing
+                chatState.isLoading = true;
+                input.disabled = true;
+                sendButton.disabled = true;
+
+                // Add user message to chat
+                addMessage(userMessage, 'user');
+
+                // Clear input
+                input.value = '';
+                input.style.height = 'auto';
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                // Generate and add bot response
+                const botResponse = await generateBotResponse(userMessage);
+                removeTypingIndicator();
+                addMessage(botResponse, 'bot');
+
+                // Update conversation context for future interactions
+                chatState.conversationContext.push({
+                    user: userMessage,
+                    bot: botResponse,
+                });
+
+            } catch (error) {
+                removeTypingIndicator();
+                console.error('Error:', error);
+                addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            } finally {
+                // Re-enable input
+                chatState.isLoading = false;
+                input.disabled = false;
+                sendButton.disabled = false;
+                input.focus();
+            }
+        }
+
+        /**
+         * Set message from quick reply
+         * @param {string} message - Message text
+         */
+        function setMessage(message) {
+            const input = document.getElementById('userInput');
+            input.value = message;
+            input.focus();
+            autoResizeTextarea(input);
+        }
+
+        /**
+         * Clear entire chat history
+         */
+        function clearChat() {
+            if (confirm('Are you sure you want to clear the chat history?')) {
+                const container = document.getElementById('messagesContainer');
+                container.innerHTML = '';
+
+                // Add welcome message back
+                const welcome = document.createElement('div');
+                welcome.className = 'message bot';
+                welcome.innerHTML = `
+                    <div class="message-content">
+                        <div class="welcome-message">
+                            <h2>Welcome! 👋</h2>
+                            <p>I'm your AI assistant. I can help you with questions, provide information, and have conversations.</p>
+                            <div class="quick-replies">
+                                <button class="quick-reply-btn" onclick="setMessage('Hello')">Say Hello</button>
+                                <button class="quick-reply-btn" onclick="setMessage('Who are you?')">Who are you?</button>
+                                <button class="quick-reply-btn" onclick="setMessage('Tell me something interesting')">Tell me something</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(welcome);
+
+                // Reset state
+                chatState = {
+                    isLoading: false,
+                    messages: [],
+                    conversationContext: [],
+                };
+
+                document.getElementById('userInput').focus();
+            }
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        // Allow Enter key to send (Shift+Enter for new line)
+        document.getElementById('userInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            } else if (e.key === 'Enter' && e.shiftKey) {
+                // Allow shift+enter to create newline
+                setTimeout(() => autoResizeTextarea(e.target), 0);
+            }
+        });
+
+        // Auto-resize textarea on input
+        document.getElementById('userInput').addEventListener('input', (e) => {
+            autoResizeTextarea(e.target);
+        });
+
+        // Focus input on page load
+        window.addEventListener('load', () => {
+            document.getElementById('userInput').focus();
+        });
+    </script>
+</body>
+</html>
